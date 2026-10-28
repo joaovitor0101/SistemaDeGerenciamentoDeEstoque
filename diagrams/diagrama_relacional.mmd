@@ -1,0 +1,36 @@
+erDiagram
+    FORNECEDOR ||--o{ COMPRA : "fornece"
+    COMPRA ||--|{ ITEM_COMPRA : "contém"
+    PRODUTO ||--o{ ITEM_COMPRA : "é comprado em"
+
+    FORNECEDOR {
+        INT id_fornecedor PK "NN"
+        VARCHAR(120) nome "NN"
+        CHAR(14) cnpj "UQ, NN"
+        VARCHAR(20) telefone "Opcional"
+        VARCHAR(120) email "Opcional"
+    }
+
+    COMPRA {
+        INT id_compra PK "NN"
+        INT id_fornecedor FK "NN"
+        DATE data_compra "NN"
+        VARCHAR(12) status "NN"
+    }
+
+    PRODUTO {
+        INT id_produto PK "NN"
+        VARCHAR(120) nome "NN"
+        VARCHAR(255) descricao "Opcional"
+        DECIMAL(10_2) preco_venda "NN"
+        INT estoque_atual "NN"
+        INT estoque_minimo "NN"
+    }
+
+    ITEM_COMPRA {
+        INT id_item PK "NN"
+        INT id_compra FK "NN"
+        INT id_produto FK "NN"
+        INT quantidade "NN"
+        DECIMAL(10_2) preco_unitario "NN"
+    }
