@@ -1,4 +1,5 @@
 import os
+import sys
 from conexion.oracle_queries import ConexaoOracle
 
 
@@ -28,8 +29,9 @@ def criar_estrutura_banco(banco: ConexaoOracle, caminho_ddl: str):
             banco.executar_ddl(comando)
             print(f"[OK] {primeira_linha}")
         except Exception as erro:
-            # Caso seja a primeira execução, os comandos DROP podem avisar que o objeto ainda não existe
-            if comando.upper().startswith("DROP"):
+            msg_erro = str(erro)
+            # ORA-00942 (tabela não existe) / ORA-02289 (sequence não existe) na primeira execução
+            if comando.upper().startswith("DROP") and ("ORA-00942" in msg_erro or "ORA-02289" in msg_erro):
                 print(f"[INFO] Objeto ainda não existia ({primeira_linha}) - ignorado.")
             else:
                 print(f"[ERRO] Falha ao executar '{primeira_linha}': {erro}")
@@ -64,6 +66,16 @@ def inicializar_banco():
     caminho_dml = os.path.join(diretorio_raiz, "sql", "inserting_samples_estoque.sql")
 
     banco = ConexaoOracle(permite_escrita=True)
+
+    print(f"Testando conexão com Oracle em {banco.host}:{banco.porta}/{banco.servico}...")
+    try:
+        banco.conectar()
+        banco.desconectar()
+        print("[OK] Conexão estabelecida com sucesso!")
+    except Exception as erro:
+        print(f"[ERRO DE CONEXÃO] Não foi possível conectar ao Oracle ({banco.host}:{banco.porta}/{banco.servico}):\n{erro}")
+        sys.exit(1)
+
     criar_estrutura_banco(banco, caminho_ddl)
     inserir_dados_iniciais(banco, caminho_dml)
     validar_carga_inicial(banco)

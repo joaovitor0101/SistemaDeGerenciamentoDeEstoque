@@ -5,7 +5,7 @@ import pandas as pd
 try:
     import oracledb as oracle_driver
 except ImportError:
-    import cx_Oracle as oracle_driver
+    import cx_Oracle as oracle_driver  # type: ignore
 
 
 class ConexaoOracle:
