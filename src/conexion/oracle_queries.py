@@ -20,7 +20,7 @@ class ConexaoOracle:
         self.porta = int(os.getenv("ORACLE_PORT", "1521"))
         self.servico = os.getenv("ORACLE_SERVICE", "XEPDB1")
         self.usuario = os.getenv("ORACLE_USER", "labdatabase")
-        self.senha = os.getenv("ORACLE_PASSWORD", "labDatabase2022")
+        self.senha = os.getenv("ORACLE_PASSWORD", "lab@Database2025")
 
         self.conexao = None
         self.cursor = None
