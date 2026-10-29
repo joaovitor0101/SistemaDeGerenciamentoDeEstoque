@@ -29,3 +29,27 @@ Em cumprimento ao **Item 8 — Observação Importante (5)** do edital da discip
 - **Prompt Utilizado:**
   > *"Elabore os scripts SQL compatíveis com o SGBD Oracle para a Etapa 1 do projeto (sql/create_tables_estoque.sql e sql/inserting_samples_estoque.sql), contemplando comandos de limpeza (DROP com CASCADE CONSTRAINTS), objetos SEQUENCE para geração incremental das chaves primárias e definição explícita das CONSTRAINTS (PRIMARY KEY, FOREIGN KEY e UNIQUE) para as tabelas FORNECEDOR, PRODUTO, COMPRA e ITEM_COMPRA. Em seguida, estruture as classes de domínio da Etapa 2 no pacote src/model/, aplicando encapsulamento (getters e setters), método descritivo to_string() e associação entre objetos por referência de instância."*
 -
+
+---
+
+## 4. Implementação do Módulo de Conexão Oracle e Script de Carga Automatizada
+
+- **Fonte / Ferramenta:** Google Antigravity (Modelo Gemini)
+- **Data da Consulta:** 29/10/2026
+- **Prompt Utilizado:**
+  > *"Desenvolva de forma autoral o módulo de conexão direta com o banco de dados Oracle (src/conexion/oracle_queries.py) e o script de inicialização estrutural e carga de registros (src/create_tables_and_records.py), assegurando compatibilidade tanto com o driver moderno python-oracledb quanto com o driver cx_Oracle presente na Máquina Virtual Linux da disciplina, sem qualquer utilização de frameworks ORM."*
+- **Análise Crítica e Aplicação pelo Grupo:**
+  - O grupo estruturou a classe `ConexaoOracle` com gerenciamento explícito de abertura/fechamento de conexões e cursores (`try/finally`), controle de permissão de escrita (`permite_escrita`), confirmação transacional via `commit()` para comandos DML, consulta tabular retornando `DataFrame` do Pandas e obtenção sequencial de chaves primárias (`NEXTVAL`).
+  - No script `create_tables_and_records.py`, implementamos o parser `extrair_comandos_sql()` para higienizar comentários dos scripts `.sql` e tratar de forma resiliente a primeira execução dos comandos `DROP` na VM do laboratório.
+
+---
+
+## 4. Implementação do Módulo de Conexão Oracle e Script de Carga Automatizada
+
+- **Fonte / Ferramenta:** Google Antigravity (Modelo Gemini)
+- **Data da Consulta:** 29/10/2026
+- **Prompt Utilizado:**
+  > *"Desenvolva de forma autoral o módulo de conexão direta com o banco de dados Oracle (src/conexion/oracle_queries.py) e o script de inicialização estrutural e carga de registros (src/create_tables_and_records.py), assegurando compatibilidade tanto com o driver moderno python-oracledb quanto com o driver cx_Oracle presente na Máquina Virtual Linux da disciplina, sem qualquer utilização de frameworks ORM."*
+- **Análise Crítica e Aplicação pelo Grupo:**
+  - O grupo estruturou a classe `ConexaoOracle` com gerenciamento explícito de abertura/fechamento de conexões e cursores (`try/finally`), controle de permissão de escrita (`permite_escrita`), confirmação transacional via `commit()` para comandos DML, consulta tabular retornando `DataFrame` do Pandas e obtenção sequencial de chaves primárias (`NEXTVAL`).
+  - No script `create_tables_and_records.py`, implementamos o parser `extrair_comandos_sql()` para higienizar comentários dos scripts `.sql` e tratar de forma resiliente a primeira execução dos comandos `DROP` na VM do laboratório.
