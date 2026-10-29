@@ -1,0 +1,54 @@
+"""Execução e apresentação dos relatórios do sistema de estoque."""
+
+from pathlib import Path
+import sys
+
+
+class Relatorio:
+    """Executa relatórios pela classe compartilhada ConexaoOracle."""
+
+    def __init__(self, conexao=None, saida=None):
+        self.conexao = conexao
+        self.saida = saida if saida is not None else sys.stdout
+
+    def _executar_relatorio(self, arquivo, titulo):
+        print("\n{}".format(titulo), file=self.saida)
+        caminho_sql = Path(__file__).resolve().parents[1] / "sql" / arquivo
+
+        try:
+            sql = caminho_sql.read_text(encoding="utf-8")
+            if not sql.strip():
+                raise ValueError("o arquivo SQL está vazio")
+            sql = sql.rstrip()
+            if sql.endswith(";"):
+                sql = sql[:-1].rstrip()
+        except (OSError, ValueError) as erro:
+            print("Não foi possível carregar o SQL: {}".format(erro), file=self.saida)
+            return
+
+        if self.conexao is None:
+            print("Conexão Oracle compartilhada não fornecida.", file=self.saida)
+            return
+
+        try:
+            resultado = self.conexao.consultar(sql)
+            if resultado.empty:
+                print("A consulta não retornou registros.", file=self.saida)
+            else:
+                print(resultado.to_string(index=False), file=self.saida)
+        except Exception as erro:
+            print("Falha ao executar o relatório: {}".format(erro), file=self.saida)
+
+    def get_relatorio_compras_por_fornecedor(self):
+        """Exibe as compras agrupadas por fornecedor."""
+        self._executar_relatorio(
+            "relatorio_compras_por_fornecedor.sql",
+            "Compras por fornecedor",
+        )
+
+    def get_relatorio_itens_compra(self):
+        """Exibe os itens detalhados das compras."""
+        self._executar_relatorio(
+            "relatorio_itens_compra.sql",
+            "Detalhado de compras",
+        )
