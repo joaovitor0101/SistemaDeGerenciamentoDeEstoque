@@ -54,42 +54,57 @@ Em cumprimento ao **Item 8 — Observação Importante (5)** do edital da discip
   - O grupo estruturou a classe `ConexaoOracle` com gerenciamento explícito de abertura/fechamento de conexões e cursores (`try/finally`), controle de permissão de escrita (`permite_escrita`), confirmação transacional via `commit()` para comandos DML, consulta tabular retornando `DataFrame` do Pandas e obtenção sequencial de chaves primárias (`NEXTVAL`).
   - No script `create_tables_and_records.py`, implementamos o parser `extrair_comandos_sql()` para higienizar comentários dos scripts `.sql` e tratar de forma resiliente a primeira execução dos comandos `DROP` na VM do laboratório.
 
-## Parte 4 - apoio do ChatGPT/Codex (29/10/2026)
+## Parte 4 — Controllers de Compra e Item de Compra
 
-**Ferramenta:** ChatGPT/Codex.
-**Registro das solicitações:** síntese técnica das mensagens da conversa, com redação revisada para documentação; não constitui transcrição literal.
+- **Fonte / Ferramenta:** ChatGPT/Codex.
+- **Data da consulta:** 29/10/2026.
+- **Responsável pela parte:** Miguel (`miguelgomessilveira7-cmd`).
+- **Registro das solicitações:** síntese técnica dos pedidos da conversa, revisada para documentação; não constitui transcrição literal.
 
-- Analisar a estrutura existente do projeto, especialmente os modelos, os scripts SQL e o módulo de conexão, para orientar a implementação dos controllers de compra e item de compra.
-- Desenvolver localmente as classes `ControllerCompra` e `ControllerItemCompra`, mantendo compatibilidade com as interfaces e associações definidas pelo grupo.
-- Implementar operações de inclusão, consulta, listagem, atualização e exclusão, com validação dos dados e das referências entre entidades.
-- Preparar testes automatizados e orientar a execução dos controllers no Oracle da máquina virtual da disciplina.
-- Manter o desenvolvimento local, sem criar commits ou enviar alterações ao repositório remoto nesta etapa.
+### Solicitações de desenvolvimento
 
-Resultado do apoio: leitura dos models, SQL e conexao existentes; implementacao
-local de ControllerCompra e ControllerItemCompra, com CRUD, verificacao de FKs,
-validacoes e SQL parametrizado. Foram acrescentados testes e GUIA_PARTE_4.md.
+- Analisar os modelos, os scripts SQL e o módulo de conexão existentes para implementar os controllers de compra e item de compra de acordo com a estrutura do grupo.
+- Implementar inclusão, consulta, listagem, atualização e exclusão, preservando as associações entre objetos e validando os dados e as referências entre entidades.
+- Documentar a interface dos controllers para integração ao menu principal e orientar a validação em ambiente local e no Oracle da VM da disciplina.
 
-Validacao local realizada pela ferramenta: 7 testes automatizados com SQLite em memoria.
+### Aplicação do apoio de IA
 
-### Testes na VM da disciplina (29/10/2026)
+Foram implementadas as classes `ControllerCompra` e `ControllerItemCompra`, nos arquivos `src/controller/controller_compra.py` e `src/controller/controller_item_compra.py`, reutilizando o módulo `ConexaoOracle` do grupo. O apoio também produziu os testes em `tests/test_controllers.py` e as orientações de integração consolidadas nesta seção.
 
-Solicitação documentada (síntese): orientar a validação dos controllers no Oracle da VM da disciplina, verificando as operações CRUD e as restrições de integridade referencial.
-Aplicacao da resposta: o integrante executou os comandos orientados pelo
-ChatGPT/Codex na VM e compartilhou as saidas no chat. A ferramenta nao acessou
-diretamente a VM; os resultados abaixo foram conferidos a partir dessas saidas.
+A implementação utiliza SQL manual com parâmetros vinculados, IDs gerados pelas sequences `SEQ_COMPRA` e `SEQ_ITEM_COMPRA`, confirmação das escritas com `commit()`, `rollback()` em caso de erro e fechamento da conexão após as operações.
 
-- Os 7 testes automatizados tambem passaram na VM (SQLite em memoria).
-- A conexao real com Oracle respondeu a SELECT 1 AS teste FROM DUAL.
-- A estrutura e os dados iniciais foram criados no banco de teste.
-- Os controllers listaram as compras e os itens existentes, com as associacoes
-  de fornecedor e produto.
-- Foi cadastrada e consultada a compra de teste 4 e o item de teste 5.
-- O status da compra foi atualizado para PENDENTE e a quantidade do item para 3.
-- A exclusao da compra com item foi bloqueada com o ValueError esperado.
-- O item 5 e a compra 4 foram excluidos ao final; as buscas retornaram None None.
+Foram adotadas as seguintes validações:
 
-Esses resultados validam os cenarios exercitados no Oracle, nao todos os casos
-possiveis. Ainda falta integrar e testar o fluxo completo do menu principal.
-A movimentacao automatica de estoque permanece pendente de decisao do grupo.
-O integrante deve revisar e compreender o codigo para explica-lo; essa compreensao
-nao foi presumida. Nenhum commit Git ou push foi realizado nesta etapa.
+- Existência do fornecedor, da compra e do produto referenciados.
+- Quantidade inteira positiva e preço positivo de até `99999999.99`, com no máximo duas casas decimais.
+- Data representada por `datetime.date` ou `datetime.datetime` e status não vazio de até 12 caracteres.
+- Bloqueio da exclusão de uma compra que ainda possui itens.
+
+A movimentação automática de estoque não foi implementada nesta parte; depende de definição do grupo sobre compras pendentes, concluídas e canceladas.
+
+### Interface documentada para integração
+
+Ambos os controllers disponibilizam `inserir(objeto)`, `buscar(id)`, `listar()`, `existe(id)`, `atualizar(objeto)` e `excluir(id)`. A inclusão recebe um objeto com ID `None` e devolve o objeto com o ID gerado; a busca devolve um objeto com suas associações ou `None`; a listagem devolve uma lista; a verificação de existência devolve um booleano; a atualização devolve o registro relido; e a exclusão devolve `True` ou levanta `ValueError` quando não há registro ou existe bloqueio. `ControllerItemCompra.listar(id_compra)` também permite filtrar os itens de uma compra.
+
+As orientações produzidas para o menu incluem exibir os objetos com `to_string()`, preservar o ID na atualização, solicitar confirmação antes de excluir, tratar erros de validação e do banco e oferecer repetição das operações. Essas orientações descrevem a integração esperada; não comprovam a validação do menu completo.
+
+### Validação realizada
+
+Os 7 testes automatizados com SQLite em memória passaram localmente e na VM, exercitando CRUD, associações, validações, bloqueio de exclusão, permissão de escrita e rollback. Para repetir os testes, executar na raiz do projeto:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Para a validação no Oracle, o integrante executou os comandos orientados na VM e compartilhou as saídas no chat. Foram conferidos os seguintes resultados:
+
+- Conexão confirmada por `SELECT 1 AS teste FROM DUAL` e inicialização das tabelas e dos dados em banco de teste.
+- Listagem das compras e dos itens com os dados associados de fornecedor e produto.
+- Inclusão e consulta da compra de teste 4 e do item de teste 5.
+- Atualização do status da compra para `PENDENTE` e da quantidade do item para 3.
+- Bloqueio da exclusão da compra enquanto havia um item associado.
+- Exclusão do item e, em seguida, da compra; as buscas finais retornaram `None` para ambos.
+
+Para repetir a validação no Oracle, configurar as variáveis `ORACLE_HOST`, `ORACLE_PORT`, `ORACLE_SERVICE`, `ORACLE_USER` e `ORACLE_PASSWORD`, instalar `requirements.txt` e utilizar as tabelas e sequences do projeto em um banco de teste. O script `create_tables_and_records.py` remove e recria tabelas e não deve ser executado sobre dados a preservar.
+
+Esses resultados validam os cenários exercitados nos controllers. A validação completa pelo menu principal deve ser realizada pelo grupo. A ferramenta não acessou diretamente a VM; a conferência dos resultados no Oracle foi feita a partir das saídas fornecidas pelo integrante.
