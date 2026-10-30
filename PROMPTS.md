@@ -53,3 +53,43 @@ Em cumprimento ao **Item 8 — Observação Importante (5)** do edital da discip
 - **Análise Crítica e Aplicação pelo Grupo:**
   - O grupo estruturou a classe `ConexaoOracle` com gerenciamento explícito de abertura/fechamento de conexões e cursores (`try/finally`), controle de permissão de escrita (`permite_escrita`), confirmação transacional via `commit()` para comandos DML, consulta tabular retornando `DataFrame` do Pandas e obtenção sequencial de chaves primárias (`NEXTVAL`).
   - No script `create_tables_and_records.py`, implementamos o parser `extrair_comandos_sql()` para higienizar comentários dos scripts `.sql` e tratar de forma resiliente a primeira execução dos comandos `DROP` na VM do laboratório.
+
+## Parte 4 - apoio do ChatGPT/Codex (29/10/2026)
+
+**Ferramenta:** ChatGPT/Codex.
+**Registro das solicitações:** síntese técnica das mensagens da conversa, com redação revisada para documentação; não constitui transcrição literal.
+
+- Analisar a estrutura existente do projeto, especialmente os modelos, os scripts SQL e o módulo de conexão, para orientar a implementação dos controllers de compra e item de compra.
+- Desenvolver localmente as classes `ControllerCompra` e `ControllerItemCompra`, mantendo compatibilidade com as interfaces e associações definidas pelo grupo.
+- Implementar operações de inclusão, consulta, listagem, atualização e exclusão, com validação dos dados e das referências entre entidades.
+- Preparar testes automatizados e orientar a execução dos controllers no Oracle da máquina virtual da disciplina.
+- Manter o desenvolvimento local, sem criar commits ou enviar alterações ao repositório remoto nesta etapa.
+
+Resultado do apoio: leitura dos models, SQL e conexao existentes; implementacao
+local de ControllerCompra e ControllerItemCompra, com CRUD, verificacao de FKs,
+validacoes e SQL parametrizado. Foram acrescentados testes e GUIA_PARTE_4.md.
+
+Validacao local realizada pela ferramenta: 7 testes automatizados com SQLite em memoria.
+
+### Testes na VM da disciplina (29/10/2026)
+
+Solicitação documentada (síntese): orientar a validação dos controllers no Oracle da VM da disciplina, verificando as operações CRUD e as restrições de integridade referencial.
+Aplicacao da resposta: o integrante executou os comandos orientados pelo
+ChatGPT/Codex na VM e compartilhou as saidas no chat. A ferramenta nao acessou
+diretamente a VM; os resultados abaixo foram conferidos a partir dessas saidas.
+
+- Os 7 testes automatizados tambem passaram na VM (SQLite em memoria).
+- A conexao real com Oracle respondeu a SELECT 1 AS teste FROM DUAL.
+- A estrutura e os dados iniciais foram criados no banco de teste.
+- Os controllers listaram as compras e os itens existentes, com as associacoes
+  de fornecedor e produto.
+- Foi cadastrada e consultada a compra de teste 4 e o item de teste 5.
+- O status da compra foi atualizado para PENDENTE e a quantidade do item para 3.
+- A exclusao da compra com item foi bloqueada com o ValueError esperado.
+- O item 5 e a compra 4 foram excluidos ao final; as buscas retornaram None None.
+
+Esses resultados validam os cenarios exercitados no Oracle, nao todos os casos
+possiveis. Ainda falta integrar e testar o fluxo completo do menu principal.
+A movimentacao automatica de estoque permanece pendente de decisao do grupo.
+O integrante deve revisar e compreender o codigo para explica-lo; essa compreensao
+nao foi presumida. Nenhum commit Git ou push foi realizado nesta etapa.
