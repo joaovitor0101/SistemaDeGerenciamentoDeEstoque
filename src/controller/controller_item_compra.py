@@ -1,10 +1,24 @@
-"""CRUD de itens; nao movimenta estoque automaticamente por status de compra."""
+"""CRUD de itens de compra com consulta unificada (sem N+1 queries)."""
 from decimal import Decimal, InvalidOperation
 
-from controller.controller_compra import ControllerCompra, executar, existe, inteiro_positivo
+from controller.controller_compra import executar, existe, inteiro_positivo
 from model.item_compra import ItemCompra
 from model.compra import Compra
+from model.fornecedor import Fornecedor
 from model.produto import Produto
+
+
+def validar_decimal_positivo(valor, campo="Preco"):
+    try:
+        if isinstance(valor, bool):
+            raise ValueError(f"{campo} invalido.")
+        preco = Decimal(str(valor))
+        if (not preco.is_finite() or preco <= 0 or preco > Decimal('99999999.99')
+                or preco != preco.quantize(Decimal('0.01'))):
+            raise ValueError(f"{campo} deve ser positivo e ter no maximo duas casas decimais.")
+        return preco
+    except (InvalidOperation, TypeError, ValueError) as erro:
+        raise ValueError(f"{campo} invalido para NUMBER(10,2).") from erro
 
 
 class ControllerItemCompra:
@@ -31,15 +45,7 @@ class ControllerItemCompra:
         if not existe(self.banco, "PRODUTO", "id_produto", produto):
             raise ValueError("Produto nao encontrado.")
         quantidade = inteiro_positivo(item.get_quantidade(), "Quantidade")
-        try:
-            if isinstance(item.get_preco_unitario(), bool):
-                raise ValueError("Preco invalido.")
-            preco = Decimal(str(item.get_preco_unitario()))
-            if (not preco.is_finite() or preco <= 0 or preco > Decimal('99999999.99')
-                    or preco != preco.quantize(Decimal('0.01'))):
-                raise ValueError("Preco deve ser positivo e ter no maximo duas casas decimais.")
-        except (InvalidOperation, TypeError, ValueError) as erro:
-            raise ValueError("Preco invalido para NUMBER(10,2).") from erro
+        preco = validar_decimal_positivo(item.get_preco_unitario(), "Preco")
         return {"compra": compra, "produto": produto,
                 "quantidade": quantidade, "preco": preco}
 
@@ -53,25 +59,40 @@ class ControllerItemCompra:
             (id_item, id_compra, id_produto, quantidade, preco_unitario)
             VALUES (:id, :compra, :produto, :quantidade, :preco)""", parametros, escrita=True)
         item.set_id_item(codigo)
-        return item
+        return self.buscar(codigo)
 
-    _SELECT = """SELECT i.id_item, i.id_compra, i.id_produto, i.quantidade,
-        i.preco_unitario, p.id_produto, p.nome, p.descricao, p.preco_venda,
-        p.estoque_atual, p.estoque_minimo
-        FROM ITEM_COMPRA i JOIN PRODUTO p ON p.id_produto = i.id_produto"""
+    _SELECT = """SELECT
+        i.id_item, i.quantidade, i.preco_unitario,
+        c.id_compra, c.data_compra, c.status,
+        f.id_fornecedor, f.nome, f.cnpj, f.telefone, f.email,
+        p.id_produto, p.nome, p.descricao, p.preco_venda, p.estoque_atual, p.estoque_minimo
+        FROM ITEM_COMPRA i
+        JOIN COMPRA c ON c.id_compra = i.id_compra
+        JOIN FORNECEDOR f ON f.id_fornecedor = c.id_fornecedor
+        JOIN PRODUTO p ON p.id_produto = i.id_produto"""
 
-    def _objeto(self, linha):
-        compra = ControllerCompra(self.banco).buscar(int(linha[1]))
-        produto = Produto(*linha[5:11])
-        return ItemCompra(linha[0], compra, produto, linha[3], linha[4])
+    @staticmethod
+    def _objeto(linha):
+        cnpj_limpo = linha[8].strip() if linha[8] else linha[8]
+        fornecedor = Fornecedor(linha[6], linha[7], cnpj_limpo, linha[9], linha[10])
+        compra = Compra(linha[3], fornecedor, linha[4], linha[5])
+        produto = Produto(linha[11], linha[12], linha[13], float(linha[14]), linha[15], linha[16])
+        return ItemCompra(linha[0], compra, produto, linha[1], float(linha[2]))
 
-    def listar(self, id_compra=None):
+    def listar(self, id_compra=None, id_produto=None):
         sql = self._SELECT
+        filtros = []
         parametros = {}
         if id_compra is not None:
             inteiro_positivo(id_compra, "Compra")
-            sql += " WHERE i.id_compra = :compra"
+            filtros.append("i.id_compra = :compra")
             parametros["compra"] = id_compra
+        if id_produto is not None:
+            inteiro_positivo(id_produto, "Produto")
+            filtros.append("i.id_produto = :produto")
+            parametros["produto"] = id_produto
+        if filtros:
+            sql += " WHERE " + " AND ".join(filtros)
         linhas = executar(self.banco, sql + " ORDER BY i.id_item", parametros)
         return [self._objeto(linha) for linha in linhas]
 

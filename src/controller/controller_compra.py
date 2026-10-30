@@ -15,6 +15,12 @@ def inteiro_positivo(valor, campo):
     return valor
 
 
+def inteiro_nao_negativo(valor, campo):
+    if isinstance(valor, bool) or not isinstance(valor, int) or valor < 0:
+        raise ValueError(f"{campo} deve ser um inteiro maior ou igual a zero.")
+    return valor
+
+
 def executar(banco, sql, parametros=None, escrita=False, unico=False):
     """Uma operacao por conexao, com commit/rollback e fechamento garantido."""
     if escrita and not banco.permite_escrita:
@@ -74,7 +80,6 @@ class ControllerCompra:
 
     def inserir(self, compra):
         parametros = self._validar(compra)
-        # O codigo vem sempre da sequence; nao aceita PK manual na insercao.
         if compra.get_id_compra() is not None:
             raise ValueError("Uma nova compra deve ter id_compra=None.")
         codigo = self.banco.obter_proximo_id("SEQ_COMPRA")
@@ -83,20 +88,27 @@ class ControllerCompra:
             (id_compra, id_fornecedor, data_compra, status)
             VALUES (:id, :fornecedor, :data_compra, :status)""", parametros, escrita=True)
         compra.set_id_compra(codigo)
-        return compra
+        return self.buscar(codigo)
 
     @staticmethod
     def _objeto(linha):
-        fornecedor = Fornecedor(*linha[4:9])
+        cnpj_limpo = linha[6].strip() if linha[6] else linha[6]
+        fornecedor = Fornecedor(linha[4], linha[5], cnpj_limpo, linha[7], linha[8])
         return Compra(linha[0], fornecedor, linha[2], linha[3])
 
     _SELECT = """SELECT c.id_compra, c.id_fornecedor, c.data_compra, c.status,
         f.id_fornecedor, f.nome, f.cnpj, f.telefone, f.email
         FROM COMPRA c JOIN FORNECEDOR f ON f.id_fornecedor = c.id_fornecedor"""
 
-    def listar(self):
+    def listar(self, id_fornecedor=None):
+        sql = self._SELECT
+        parametros = {}
+        if id_fornecedor is not None:
+            inteiro_positivo(id_fornecedor, "Fornecedor")
+            sql += " WHERE c.id_fornecedor = :fornecedor"
+            parametros["fornecedor"] = id_fornecedor
         return [self._objeto(linha) for linha in executar(
-            self.banco, self._SELECT + " ORDER BY c.id_compra")]
+            self.banco, sql + " ORDER BY c.id_compra", parametros)]
 
     def buscar(self, id_compra):
         inteiro_positivo(id_compra, "Compra")

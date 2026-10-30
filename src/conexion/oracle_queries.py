@@ -52,31 +52,35 @@ class ConexaoOracle:
                 pass
             self.conexao = None
 
-    def consultar(self, sql: str) -> pd.DataFrame:
+    def consultar(self, sql: str, parametros: dict = None) -> pd.DataFrame:
         """Executa uma consulta SELECT e retorna os registros em um DataFrame do Pandas."""
         try:
             self.conectar()
-            self.cursor.execute(sql)
+            self.cursor.execute(sql, parametros or {})
             linhas = self.cursor.fetchall()
             colunas = [col[0].lower() for col in self.cursor.description]
             return pd.DataFrame(linhas, columns=colunas)
         finally:
             self.desconectar()
 
-    def executar_dml(self, sql: str) -> int:
+    def executar_dml(self, sql: str, parametros: dict = None) -> int:
         """
         Executa comandos de manipulação de dados (INSERT, UPDATE, DELETE)
-        e confirma a gravação no banco com commit().
+        e confirma a gravação no banco com commit() (ou rollback() em caso de falha).
         """
         if not self.permite_escrita:
             raise PermissionError("Esta instância de conexão não tem permissão de escrita (permite_escrita=False).")
 
         try:
             self.conectar()
-            self.cursor.execute(sql)
+            self.cursor.execute(sql, parametros or {})
             linhas_afetadas = self.cursor.rowcount
             self.conexao.commit()
             return linhas_afetadas
+        except Exception:
+            if self.conexao is not None:
+                self.conexao.rollback()
+            raise
         finally:
             self.desconectar()
 
@@ -100,4 +104,3 @@ class ConexaoOracle:
             return int(proximo_valor)
         finally:
             self.desconectar()
-

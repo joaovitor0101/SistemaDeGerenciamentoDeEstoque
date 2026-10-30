@@ -12,7 +12,7 @@ class Relatorio:
         self.saida = saida if saida is not None else sys.stdout
 
     def _executar_relatorio(self, arquivo, titulo):
-        print("\n{}".format(titulo), file=self.saida)
+        print("\n=== {} ===".format(titulo), file=self.saida)
         caminho_sql = Path(__file__).resolve().parents[1] / "sql" / arquivo
 
         try:
@@ -40,15 +40,22 @@ class Relatorio:
             print("Falha ao executar o relatório: {}".format(erro), file=self.saida)
 
     def get_relatorio_compras_por_fornecedor(self):
-        """Exibe as compras agrupadas por fornecedor."""
+        """Exibe as compras agrupadas por fornecedor (GROUP BY)."""
         self._executar_relatorio(
             "relatorio_compras_por_fornecedor.sql",
-            "Compras por fornecedor",
+            "Relatório de Compras por Fornecedor (Sumarização)",
         )
 
     def get_relatorio_itens_compra(self):
-        """Exibe os itens detalhados das compras."""
+        """Exibe os itens detalhados das compras (JOIN)."""
         self._executar_relatorio(
             "relatorio_itens_compra.sql",
-            "Detalhado de compras",
+            "Relatório Detalhado de Itens de Compra (Junção de Tabelas)",
+        )
+
+    def get_relatorio_estoque_baixo(self):
+        """Exibe os produtos com estoque atual abaixo ou igual ao estoque mínimo."""
+        self._executar_relatorio(
+            "relatorio_estoque_baixo.sql",
+            "Relatório de Produtos com Estoque Baixo",
         )

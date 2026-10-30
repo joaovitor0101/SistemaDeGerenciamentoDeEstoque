@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from model.fornecedor import Fornecedor
 
 
@@ -39,9 +39,11 @@ class Compra:
 
     def to_string(self) -> str:
         nome_fornecedor = self.get_fornecedor().get_nome() if self.get_fornecedor() else "N/A"
+        data_val = self.get_data_compra()
+        data_fmt = data_val.strftime("%d/%m/%Y") if isinstance(data_val, (date, datetime)) else str(data_val)
         return (
             f"ID Compra: {self.get_id_compra()} | "
             f"Fornecedor: {nome_fornecedor} | "
-            f"Data: {self.get_data_compra()} | "
+            f"Data: {data_fmt} | "
             f"Status: {self.get_status()}"
         )

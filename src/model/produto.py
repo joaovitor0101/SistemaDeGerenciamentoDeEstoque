@@ -50,11 +50,13 @@ class Produto:
         self.estoque_minimo = estoque_minimo
 
     def to_string(self) -> str:
+        preco_fmt = f"{float(self.get_preco_venda()):.2f}" if self.get_preco_venda() is not None else "0.00"
+        desc_fmt = self.get_descricao() if self.get_descricao() else "-"
         return (
             f"ID: {self.get_id_produto()} | "
             f"Nome: {self.get_nome()} | "
-            f"Descrição: {self.get_descricao()} | "
-            f"Preço Venda: R$ {self.get_preco_venda():.2f} | "
+            f"Descrição: {desc_fmt} | "
+            f"Preço Venda: R$ {preco_fmt} | "
             f"Estoque Atual: {self.get_estoque_atual()} | "
             f"Estoque Mínimo: {self.get_estoque_minimo()}"
         )

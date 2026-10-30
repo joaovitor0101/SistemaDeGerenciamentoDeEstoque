@@ -15,37 +15,55 @@ class SplashScreen:
     )
 
     def __init__(self, conexao=None):
-        # A conexão compartilhada é recebida do programa principal.
         self.conexao = conexao
 
-    def get_updated_screen(self):
-        """Retorna a tela atualizada; sem conexão, informa dados indisponíveis."""
+    def _contar_registros(self):
         contagens = {}
         erros = {}
-        cursor = None
 
         if self.conexao is None:
             erros["CONEXAO"] = "conexão Oracle compartilhada não fornecida"
-        else:
-            try:
-                cursor = self.conexao.cursor()
-                for tabela in self.TABELAS:
-                    try:
-                        cursor.execute("SELECT COUNT(1) FROM " + tabela)
-                        resultado = cursor.fetchone()
-                        if resultado is None:
-                            raise RuntimeError("consulta sem resultado")
-                        contagens[tabela] = int(resultado[0])
-                    except Exception as erro:
-                        erros[tabela] = str(erro)
-            except Exception as erro:
-                erros["CONEXAO"] = str(erro)
-            finally:
-                if cursor is not None:
-                    try:
-                        cursor.close()
-                    except Exception:
-                        pass
+            return contagens, erros
+
+        # Suporta tanto ConexaoOracle (método consultar) quanto conexão DB-API direta (.cursor)
+        if hasattr(self.conexao, "consultar"):
+            for tabela in self.TABELAS:
+                alias = f"total_{tabela.lower()}"
+                sql = f"SELECT COUNT(1) {alias} FROM {tabela}"
+                try:
+                    df = self.conexao.consultar(sql)
+                    contagens[tabela] = int(df[alias].iloc[0])
+                except Exception as erro:
+                    erros[tabela] = str(erro)
+            return contagens, erros
+
+        cursor = None
+        try:
+            cursor = self.conexao.cursor()
+            for tabela in self.TABELAS:
+                alias = f"total_{tabela.lower()}"
+                try:
+                    cursor.execute(f"SELECT COUNT(1) {alias} FROM {tabela}")
+                    resultado = cursor.fetchone()
+                    if resultado is None:
+                        raise RuntimeError("consulta sem resultado")
+                    contagens[tabela] = int(resultado[0])
+                except Exception as erro:
+                    erros[tabela] = str(erro)
+        except Exception as erro:
+            erros["CONEXAO"] = str(erro)
+        finally:
+            if cursor is not None:
+                try:
+                    cursor.close()
+                except Exception:
+                    pass
+
+        return contagens, erros
+
+    def get_updated_screen(self):
+        """Retorna a tela atualizada; sem conexão, informa dados indisponíveis."""
+        contagens, erros = self._contar_registros()
 
         linhas = [
             "=" * 52,

@@ -48,10 +48,11 @@ class ItemCompra:
     def to_string(self) -> str:
         id_compra = self.get_compra().get_id_compra() if self.get_compra() else "N/A"
         nome_produto = self.get_produto().get_nome() if self.get_produto() else "N/A"
+        preco_fmt = f"{float(self.get_preco_unitario()):.2f}" if self.get_preco_unitario() is not None else "0.00"
         return (
             f"ID Item: {self.get_id_item()} | "
             f"ID Compra: {id_compra} | "
             f"Produto: {nome_produto} | "
             f"Quantidade: {self.get_quantidade()} | "
-            f"Preço Unitário: R$ {self.get_preco_unitario():.2f}"
+            f"Preço Unitário: R$ {preco_fmt}"
         )
