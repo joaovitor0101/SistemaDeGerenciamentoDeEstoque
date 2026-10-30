@@ -56,6 +56,7 @@ def perguntar_continuar(acao: str) -> bool:
 
 def menu_relatorios(relatorio: Relatorio):
     while True:
+        config.clear_console(0)
         opcao_relatorio = input(config.MENU_RELATORIOS).strip()
 
         if opcao_relatorio == '1':
@@ -68,9 +69,19 @@ def menu_relatorios(relatorio: Relatorio):
             relatorio.get_relatorio_estoque_baixo()
             input("\nPressione Enter para voltar ao menu de relatórios...")
         elif opcao_relatorio == '4':
+            relatorio.get_relatorio_fornecedores()
+            input("\nPressione Enter para voltar ao menu de relatórios...")
+        elif opcao_relatorio == '5':
+            relatorio.get_relatorio_produtos()
+            input("\nPressione Enter para voltar ao menu de relatórios...")
+        elif opcao_relatorio == '6':
+            relatorio.get_relatorio_compras()
+            input("\nPressione Enter para voltar ao menu de relatórios...")
+        elif opcao_relatorio in ('7', '0'):
             break
         else:
-            print("Opção inválida. Escolha entre 1 e 4.")
+            print("\nOpção inválida. Escolha entre 1 e 7.")
+            input("Pressione Enter para tentar novamente...")
 
 
 def menu_inserir(ctrl_fornecedor, ctrl_produto, ctrl_compra, ctrl_item_compra):
@@ -471,42 +482,35 @@ def run():
     ctrl_compra = ControllerCompra(banco=banco)
     ctrl_item_compra = ControllerItemCompra(banco=banco)
 
-    print(tela_inicial.get_updated_screen())
-    config.clear_console(2)
-
     while True:
+        config.clear_console(0)
+        print(tela_inicial.get_updated_screen())
         opcao = input(config.MENU_PRINCIPAL).strip()
 
         if opcao == '1':
-            config.clear_console(0)
             menu_relatorios(relatorio)
-            config.clear_console(0)
 
         elif opcao == '2':
             config.clear_console(0)
             menu_inserir(ctrl_fornecedor, ctrl_produto, ctrl_compra, ctrl_item_compra)
-            print(tela_inicial.get_updated_screen())
-            config.clear_console(2)
 
         elif opcao == '3':
             config.clear_console(0)
             menu_remover(ctrl_fornecedor, ctrl_produto, ctrl_compra, ctrl_item_compra)
-            print(tela_inicial.get_updated_screen())
-            config.clear_console(2)
 
         elif opcao == '4':
             config.clear_console(0)
             menu_atualizar(ctrl_fornecedor, ctrl_produto, ctrl_compra, ctrl_item_compra)
-            print(tela_inicial.get_updated_screen())
-            config.clear_console(2)
 
         elif opcao == '5':
+            config.clear_console(0)
             print(tela_inicial.get_updated_screen())
             print("\nEncerrando o Sistema de Gerenciamento de Estoque. Até logo!")
             break
 
         else:
-            print("Opção inválida. Escolha uma opção de 1 a 5.")
+            print("\nOpção inválida. Escolha uma opção de 1 a 5.")
+            input("Pressione Enter para tentar novamente...")
 
 
 if __name__ == "__main__":

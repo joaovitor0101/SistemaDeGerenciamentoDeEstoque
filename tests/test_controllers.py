@@ -163,7 +163,7 @@ class ControllersTest(unittest.TestCase):
         self.assertIsNone(self.itens.buscar(item.get_id_item()))
         self.compras.excluir(compra.get_id_compra())
 
-    def test_splash_screen_e_tres_relatorios(self):
+    def test_splash_screen_e_seis_relatorios(self):
         compra = self.compra()
         self.itens.inserir(ItemCompra(None, compra, Produto(1), 5, 8.00))
 
@@ -171,15 +171,23 @@ class ControllersTest(unittest.TestCase):
         self.assertIn('COM REGISTROS', tela)
         self.assertIn('FORNECEDOR', tela)
         self.assertIn('ITEM_COMPRA', tela)
+        for integrante in SplashScreen.INTEGRANTES:
+            self.assertIn(integrante, tela)
 
         saida = io.StringIO()
         relatorio = Relatorio(conexao=self.banco, saida=saida)
         relatorio.get_relatorio_compras_por_fornecedor()
         relatorio.get_relatorio_itens_compra()
         relatorio.get_relatorio_estoque_baixo()
+        relatorio.get_relatorio_fornecedores()
+        relatorio.get_relatorio_produtos()
+        relatorio.get_relatorio_compras()
         texto_relatorios = saida.getvalue()
         self.assertIn('Fornecedor teste', texto_relatorios)
         self.assertIn('Produto teste', texto_relatorios)
+        self.assertIn('12345678000199', texto_relatorios)
+        self.assertIn('Descricao inicial', texto_relatorios)
+        self.assertIn('PENDENTE', texto_relatorios)
         self.assertIn('40', texto_relatorios)
 
     def test_rejeita_referencias_inexistentes(self):

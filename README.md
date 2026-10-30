@@ -50,7 +50,10 @@ SistemaDeGerenciamentoDeEstoque/
 │   ├── sql/
 │   │   ├── relatorio_compras_por_fornecedor.sql # Consulta de sumarização (GROUP BY + COUNT + SUM)
 │   │   ├── relatorio_itens_compra.sql           # Consulta com junção de 4 tabelas (INNER JOIN)
-│   │   └── relatorio_estoque_baixo.sql          # Consulta de produtos com saldo <= estoque mínimo
+│   │   ├── relatorio_estoque_baixo.sql          # Consulta de produtos com saldo <= estoque mínimo
+│   │   ├── relatorio_fornecedores.sql           # Listagem isolada de todos os fornecedores
+│   │   ├── relatorio_produtos.sql               # Listagem isolada de todos os produtos
+│   │   └── relatorio_compras.sql                # Listagem isolada de todas as compras
 │   ├── reports/
 │   │   └── relatorios.py                        # Leitura dos arquivos .sql e exibição tabular com Pandas
 │   ├── utils/
@@ -147,6 +150,9 @@ python3 principal.py
    - **1 - Relatório de Compras Agrupado por Fornecedor (`GROUP BY`):** Sumariza a quantidade de compras e o valor financeiro total comprado de cada fornecedor.
    - **2 - Relatório Detalhado de Itens de Compra (`JOIN`):** Realiza a junção entre `COMPRA`, `FORNECEDOR`, `ITEM_COMPRA` e `PRODUTO`, exibindo cada item adquirido e seu subtotal.
    - **3 - Relatório de Produtos com Estoque Baixo:** Lista os produtos cujo `estoque_atual` está menor ou igual ao `estoque_minimo`, destacando o déficit de reposição.
+   - **4 - Relatório de Fornecedores:** Lista isoladamente todos os fornecedores cadastrados.
+   - **5 - Relatório de Produtos:** Lista isoladamente todos os produtos e saldos em estoque.
+   - **6 - Relatório de Compras:** Lista isoladamente todas as compras registradas e seus status.
 
 3. **Opção `2` — Inserir Registros:**
    Permite cadastrar novos registros em `FORNECEDOR`, `PRODUTO`, `COMPRA` ou `ITEM_COMPRA` utilizando as `SEQUENCES` do Oracle, validando os campos obrigatórios e chaves estrangeiras, exibindo o registro inserido e perguntando ao final se o usuário deseja inserir mais registros (`[S/N]`).
@@ -159,3 +165,4 @@ python3 principal.py
 
 6. **Opção `5` — Sair:**
    Exibe a tela atualizada de registros, encerra a conexão com o Oracle de forma segura e finaliza a aplicação.
+

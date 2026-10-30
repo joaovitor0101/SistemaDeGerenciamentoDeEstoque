@@ -66,30 +66,36 @@ class SplashScreen:
         contagens, erros = self._contar_registros()
 
         linhas = [
-            "=" * 52,
-            "Sistema de Gerenciamento de Estoque",
-            "Professor: Howard Roatti",
-            "Disciplina: Banco de Dados",
-            "Semestre: 2026/2",
-            "=" * 52,
+            "=" * 60,
+            "        SISTEMA DE GERENCIAMENTO DE ESTOQUE (2026/2)",
+            "     Disciplina: Banco de Dados | Prof.: Howard Roatti",
+            "=" * 60,
             "Integrantes:",
         ]
-        linhas.extend("- " + nome for nome in self.INTEGRANTES)
-        linhas.append("")
+        for i in range(0, len(self.INTEGRANTES), 2):
+            esq = f"- {self.INTEGRANTES[i]}"
+            if i + 1 < len(self.INTEGRANTES):
+                dir_nome = f"- {self.INTEGRANTES[i + 1]}"
+                linhas.append(f"  {esq:<30} {dir_nome}")
+            else:
+                linhas.append(f"  {esq}")
+
+        linhas.append("-" * 60)
         linhas.append("Registros no Oracle:")
         if "CONEXAO" in erros:
-            linhas.append("Oracle indisponível: " + erros["CONEXAO"])
+            linhas.append("  Oracle indisponível: " + erros["CONEXAO"])
 
         for tabela in self.TABELAS:
             if tabela in contagens:
                 quantidade = contagens[tabela]
                 situacao = "COM REGISTROS" if quantidade else "VAZIA"
-                linhas.append(f"{tabela:<18} {quantidade:>6}  {situacao}")
+                linhas.append(f"  {tabela:<18} {quantidade:>6}  {situacao}")
             elif tabela in erros:
-                linhas.append(f"{tabela:<18} indisponível: {erros[tabela]}")
+                linhas.append(f"  {tabela:<18} indisponível: {erros[tabela]}")
             else:
-                linhas.append(f"{tabela:<18} indisponível")
+                linhas.append(f"  {tabela:<18} indisponível")
 
+        linhas.append("=" * 60)
         return "\n".join(linhas)
 
 

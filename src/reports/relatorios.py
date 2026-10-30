@@ -59,3 +59,24 @@ class Relatorio:
             "relatorio_estoque_baixo.sql",
             "Relatório de Produtos com Estoque Baixo",
         )
+
+    def get_relatorio_fornecedores(self):
+        """Exibe isoladamente todos os fornecedores cadastrados."""
+        self._executar_relatorio(
+            "relatorio_fornecedores.sql",
+            "Relatório de Fornecedores Cadastrados",
+        )
+
+    def get_relatorio_produtos(self):
+        """Exibe isoladamente todos os produtos cadastrados."""
+        self._executar_relatorio(
+            "relatorio_produtos.sql",
+            "Relatório de Produtos Cadastrados",
+        )
+
+    def get_relatorio_compras(self):
+        """Exibe isoladamente todas as compras registradas."""
+        self._executar_relatorio(
+            "relatorio_compras.sql",
+            "Relatório de Compras Registradas",
+        )
