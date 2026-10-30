@@ -15,6 +15,8 @@ Em cumprimento ao **Item 8 — Observação Importante (5)** do edital da discip
 - **Prompt Utilizado:**
   > *"Realize uma análise técnica minuciosa do edital da disciplina de Banco de Dados referente ao desenvolvimento de uma aplicação CRUD integrada ao banco de dados relacional Oracle. Nosso grupo é composto por 5 integrantes e desenvolverá o tema 'Sistema de Gerenciamento de Estoque'. Estruture a organização modular de diretórios seguindo o padrão arquitetural de separação de responsabilidades (conexion, model, controller, reports, sql e utils) apresentado no repositório de referência do professor (https://github.com/howardroatti/example_crud_oracle)."*
 
+---
+
 ## 2. Alinhamento Arquitetural ao Modelo Entidade-Relacionamento
 
 - **Fonte / Ferramenta:** Google Antigravity (Modelo Gemini)
@@ -22,13 +24,14 @@ Em cumprimento ao **Item 8 — Observação Importante (5)** do edital da discip
 - **Prompt Utilizado:**
   > *"Com base no Diagrama Entidade-Relacionamento (DER) elaborado pelo grupo para o Sistema de Gerenciamento de Estoque — composto pelas entidades FORNECEDOR, PRODUTO, COMPRA e ITEM_COMPRA, seus respectivos atributos, domínios de dados, restrições de nulidade (NOT NULL), chaves únicas (UNIQUE), chaves primárias (PK) e chaves estrangeiras (FK) —, adapte a estrutura de módulos do projeto e gere a especificação correspondente em sintaxe Mermaid (diagrama como código) em conformidade com o Item 3 e o Roteiro de Execução do edital."*
 
+---
+
 ## 3. Implementação do Script DDL/DML e Mapeamento Objeto-Relacional Manual
 
 - **Fonte / Ferramenta:** Google Antigravity (Modelo Gemini)
 - **Data da Consulta:** 28/10/2026
 - **Prompt Utilizado:**
   > *"Elabore os scripts SQL compatíveis com o SGBD Oracle para a Etapa 1 do projeto (sql/create_tables_estoque.sql e sql/inserting_samples_estoque.sql), contemplando comandos de limpeza (DROP com CASCADE CONSTRAINTS), objetos SEQUENCE para geração incremental das chaves primárias e definição explícita das CONSTRAINTS (PRIMARY KEY, FOREIGN KEY e UNIQUE) para as tabelas FORNECEDOR, PRODUTO, COMPRA e ITEM_COMPRA. Em seguida, estruture as classes de domínio da Etapa 2 no pacote src/model/, aplicando encapsulamento (getters e setters), método descritivo to_string() e associação entre objetos por referência de instância."*
--
 
 ---
 
@@ -44,17 +47,7 @@ Em cumprimento ao **Item 8 — Observação Importante (5)** do edital da discip
 
 ---
 
-## 4. Implementação do Módulo de Conexão Oracle e Script de Carga Automatizada
-
-- **Fonte / Ferramenta:** Google Antigravity (Modelo Gemini)
-- **Data da Consulta:** 29/10/2026
-- **Prompt Utilizado:**
-  > *"Desenvolva de forma autoral o módulo de conexão direta com o banco de dados Oracle (src/conexion/oracle_queries.py) e o script de inicialização estrutural e carga de registros (src/create_tables_and_records.py), assegurando compatibilidade tanto com o driver moderno python-oracledb quanto com o driver cx_Oracle presente na Máquina Virtual Linux da disciplina, sem qualquer utilização de frameworks ORM."*
-- **Análise Crítica e Aplicação pelo Grupo:**
-  - O grupo estruturou a classe `ConexaoOracle` com gerenciamento explícito de abertura/fechamento de conexões e cursores (`try/finally`), controle de permissão de escrita (`permite_escrita`), confirmação transacional via `commit()` para comandos DML, consulta tabular retornando `DataFrame` do Pandas e obtenção sequencial de chaves primárias (`NEXTVAL`).
-  - No script `create_tables_and_records.py`, implementamos o parser `extrair_comandos_sql()` para higienizar comentários dos scripts `.sql` e tratar de forma resiliente a primeira execução dos comandos `DROP` na VM do laboratório.
-
-## Parte 4 — Controllers de Compra e Item de Compra
+## 5. Parte 4 — Controllers de Compra e Item de Compra
 
 - **Fonte / Ferramenta:** ChatGPT/Codex.
 - **Data da consulta:** 29/10/2026.
@@ -90,7 +83,7 @@ As orientações produzidas para o menu incluem exibir os objetos com `to_string
 
 ### Validação realizada
 
-Os 7 testes automatizados com SQLite em memória passaram localmente e na VM, exercitando CRUD, associações, validações, bloqueio de exclusão, permissão de escrita e rollback. Para repetir os testes, executar na raiz do projeto:
+Os testes automatizados com SQLite em memória passaram localmente e na VM, exercitando CRUD, associações, validações, bloqueio de exclusão, permissão de escrita e rollback. Para repetir os testes, executar na raiz do projeto:
 
 ```sh
 python -m unittest discover -s tests -v
@@ -108,3 +101,15 @@ Para a validação no Oracle, o integrante executou os comandos orientados na VM
 Para repetir a validação no Oracle, configurar as variáveis `ORACLE_HOST`, `ORACLE_PORT`, `ORACLE_SERVICE`, `ORACLE_USER` e `ORACLE_PASSWORD`, instalar `requirements.txt` e utilizar as tabelas e sequences do projeto em um banco de teste. O script `create_tables_and_records.py` remove e recria tabelas e não deve ser executado sobre dados a preservar.
 
 Esses resultados validam os cenários exercitados nos controllers. A validação completa pelo menu principal deve ser realizada pelo grupo. A ferramenta não acessou diretamente a VM; a conferência dos resultados no Oracle foi feita a partir das saídas fornecidas pelo integrante.
+
+---
+
+## 6. Revisão de Integração Final, Otimização e Documentação (`README.md`)
+
+- **Fonte / Ferramenta:** Google Antigravity (Modelo Gemini)
+- **Data da Consulta:** 29/10/2026 - 30/10/2026
+- **Prompt Utilizado:**
+  > *"Aplique as correções de integração no menu principal (src/principal.py), realize uma varredura completa em todos os códigos eliminando redundâncias e otimizando consultas, valide a compatibilidade de execução no Linux da VM e elabore o README.md detalhando o funcionamento passo a passo do sistema."*
+- **Análise Crítica e Aplicação pelo Grupo:**
+  - Unificamos o gerenciamento de conexões para utilizar uma única instância de `ConexaoOracle` em todos os módulos (`SplashScreen`, `Relatorio` e os 4 `Controllers`), eliminando conexões paralelas ociosas e consultas `N+1` na listagem de `ItemCompra`.
+  - Completamos todos os requisitos funcionais do edital em `src/principal.py` (listagem prévia de registros, confirmação de exclusão, tratamento de chaves estrangeiras com opção de exclusão em cascata dos filhos, exibição do registro atualizado via `to_string()` e loops de repetição das operações), expandimos a suíte automatizada para 10 testes cobrindo as 4 tabelas e redigimos o guia completo de execução em Linux no `README.md`.
